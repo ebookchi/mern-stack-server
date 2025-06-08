@@ -5,28 +5,39 @@ import cors from "cors";
 const app = express();
 
 // Middleware
+// Parse incoming JSON and URL-encoded payloads
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Enable CORS for all routes (allows cross-origin requests)
 app.use(cors());
+
+// Log HTTP requests in development-friendly format
 app.use(morgan("dev"));
 
 const port = process.env.PORT || 3000;
 
+// Routes
+// Root route for health check or basic response
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
 });
 
 // 404 handler
+// Handle 404 errors for unmatched routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });
 });
 
 // Error handler
+// Centralized error handler for unexpected server errors
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  // Log stack trace for debugging
   console.error(err.stack);
   res.status(500).json({ error: "Internal Server Error" });
 });
 
+// Start the server and log the port
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
