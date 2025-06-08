@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import crypto from "crypto";
 
 /**
  * Generates a magic authentication link for passwordless login
@@ -24,6 +25,22 @@ import { RequestHandler } from "express";
  * }
  */
 export const generateAuthLink: RequestHandler = (request, response) => {
+  //generate authentication link
+  //and send it to the user's email using Mailtrap service
+  /*
+    1. Generate a unique token for the user
+    2. Store the token in the database with an expiration time
+    3. Create a magic link using the token
+    4. Send the magic link to the user's email address
+    5. Notify the user that the link has been sent
+    6. Return a success response
+    */
+
+  const token = crypto.randomBytes(36).toString("hex");
+  const expirationTime = Date.now() + 3600000; // 1 hour from now
+
+  const { email } = request.body;
+
   response
     .status(200)
     .json({ message: "Authentication link generated successfully" });

@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import authRouter from "./routes/auth";
-
+import "@/db/connect";
 const app = express();
 
 // Middleware
