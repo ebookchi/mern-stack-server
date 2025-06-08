@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import authRouter from "./routes/auth";
 
 const app = express();
 
@@ -17,12 +18,7 @@ app.use(morgan("dev"));
 
 const port = process.env.PORT || 3000;
 
-// Routes
-// Root route for health check or basic response
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
-});
-
+app.use("/auth", authRouter);
 // 404 handler
 // Handle 404 errors for unmatched routes
 app.use((req: Request, res: Response) => {
