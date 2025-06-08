@@ -105,3 +105,116 @@ chore(deps): bump lodash from 4.17.21 to 4.17.22
 
 Copilot must always follow these rules when generating commit messages.
 ```
+
+````
+# Code Commenting Guidelines for GitHub Copilot
+
+Copilot must follow these rules when generating or reviewing code comments:
+
+---
+
+## ✅ General Rules
+
+- Write comments in **clear, concise English**.
+- Comments must **explain "why"**, not "what", unless the code is complex or unclear.
+- Prefer **high-level reasoning** over low-level narration.
+- Never repeat what the code obviously says.
+
+---
+
+## 🧠 Best Practices
+
+1. **Function/Method Headers**
+   - Use a comment block before each public function/method to explain:
+     - Purpose
+     - Parameters
+     - Return values
+     - Side effects (if any)
+
+   Example:
+   ```csharp
+   /// Calculates the net balance after applying all transactions.
+   /// @param transactions A list of incoming/outgoing values
+   /// @returns Final balance after adjustments
+````
+
+2. **Complex Logic or Algorithms**
+
+   - Add inline comments to explain:
+     - Loops with non-obvious termination conditions
+     - Recursion, bitwise ops, regular expressions
+     - Domain-specific logic
+
+3. **Magic Numbers or Hardcoded Strings**
+
+   - Always explain them or replace with named constants.
+
+   Example:
+
+   ```python
+   MAX_RETRIES = 3  # Prevents infinite retry loop in network calls
+   ```
+
+4. **Code That May Break in the Future**
+
+   - Warn future developers about fragile logic, dependencies, or assumptions.
+
+   Example:
+
+   ```javascript
+   // This assumes the third-party API always returns status 200 for success
+   ```
+
+5. **TODO / FIXME**
+   - Use these to highlight work that is incomplete, needs refactoring, or may cause bugs:
+     - `// TODO:` — a feature or improvement
+     - `// FIXME:` — a known bug or fragile logic
+
+---
+
+## 🚫 Avoid These
+
+- Redundant comments like:
+  ```js
+  let count = 5; // Set count to 5 ❌
+  ```
+- Over-commenting simple code
+- Writing comments that become outdated easily
+
+---
+
+## ✍️ Style and Format
+
+- Use full sentences with proper punctuation.
+- Start with a capital letter.
+- Place inline comments on a separate line **above** the code they explain.
+- Use `//` for short comments, `/** */` or `///` for structured comments.
+
+---
+
+## 💡 Example Good Comments
+
+```js
+// Retry up to 3 times with exponential backoff
+for (let i = 0; i < MAX_RETRIES; i++) {
+  // ...
+}
+```
+
+```ts
+/**
+ * Fetches user profile data with caching.
+ * Falls back to remote API if cache is stale or empty.
+ */
+function getUserProfile(userId: string) {
+  // ...
+}
+```
+
+---
+
+Copilot should generate comments that reflect these principles **automatically**, especially in new code or during code reviews.
+
+```
+
+```
