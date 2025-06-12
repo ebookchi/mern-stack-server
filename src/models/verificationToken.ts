@@ -8,6 +8,7 @@
  */
 
 import { model, Schema } from "mongoose";
+import { hashSync, compareSync, genSaltSync } from "bcrypt";
 
 /**
  * Verification Token Schema
@@ -36,6 +37,31 @@ const verificationTokenSchema = new Schema(
   }
 );
 
+verificationTokenSchema.pre("save", function (next) {
+  // Automatically set the updatedAt field to the current date
+  this.updatedAt = new Date();
+
+  // If the token is new, set createdAt to the current date
+  if (this.isNew) {
+    this.createdAt = new Date();
+  }
+
+  // If the token is modified, hash it before saving
+  if (this.isModified("token")) {
+    // Hash the token before saving it to the database
+    this.token = hashSync(this.token, genSaltSync(10));
+  }
+
+  // Call the next middleware function
+  next();
+});
+
+verificationTokenSchema.methods.compareToken = function (token: string) {
+  // Compare the provided token with the hashed token in the database
+  return compareSync(token, this.token);
+};
+
+// Create the VerificationToken model using the defined schema
 const VerificationTokenModel = model(
   "VerificationToken",
   verificationTokenSchema
