@@ -15,7 +15,7 @@ const transport = nodeMailer.createTransport({
 });
 const mail = {
   async sendVerificationEmail(options: VerificationMailOptions) {
-    transport.sendMail({
+    await transport.sendMail({
       from: process.env.VERIFICATION_EMAIL,
       to: options.to,
       subject: "Auth Verification",

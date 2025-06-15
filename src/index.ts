@@ -3,6 +3,11 @@ import morgan from "morgan";
 import cors from "cors";
 import authRouter from "./routes/auth";
 import "@/db/connect";
+import {
+  globalErrorHandler,
+  notFoundHandler,
+} from "@/middlewares/globalErrorHandler";
+
 const app = express();
 
 // Middleware
@@ -19,18 +24,25 @@ app.use(morgan("dev"));
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 app.use("/auth", authRouter);
-// 404 handler
-// Handle 404 errors for unmatched routes
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: "Not Found" });
+
+// 404 handler - must be after all routes
+app.use(notFoundHandler);
+
+// Global error handler - must be last middleware
+app.use(globalErrorHandler);
+
+// Global handlers for uncaught exceptions and unhandled rejections
+process.on("uncaughtException", (err) => {
+  console.error("💥 UNCAUGHT EXCEPTION! Shutting down...");
+  console.error(err.name, err.message);
+  process.exit(1);
 });
 
-// Error handler
-// Centralized error handler for unexpected server errors
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  // Log stack trace for debugging
-  console.error(err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+process.on("unhandledRejection", (err: Error) => {
+  console.error("💥 UNHANDLED REJECTION!");
+  console.error(err.name, err.message);
+  // In production, you might want to gracefully close the server
+  // server.close(() => { process.exit(1); });
 });
 
 // Start the server and log the port
