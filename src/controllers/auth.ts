@@ -4,7 +4,7 @@ import VerificationTokenModel from "@/models/verificationToken";
 import userModel from "@/models/user";
 import nodeMailer from "nodemailer";
 import { generateVerificationEmail } from "@/templates/emails/verificationEmail";
-
+import mail from "@/utils/mail";
 /**
  * Generates a magic authentication link for passwordless login
  *
@@ -65,16 +65,6 @@ export const generateAuthLink: RequestHandler = async (request, response) => {
     expiresAt: new Date(expirationTime),
   });
 
-  // Looking to send emails in production? Check out our Email API/SMTP product!
-  const transport = nodeMailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-      user: "c420e13fed5725",
-      pass: "7a270a3431c0db",
-    },
-  });
-
   let link = `${process.env.APP_URI}:${process.env.PORT}/auth/verify?token=${token}&userId=${userId}`;
 
   // Ensure APP_URI and PORT are defined before using includes to avoid runtime errors,
@@ -87,12 +77,9 @@ export const generateAuthLink: RequestHandler = async (request, response) => {
     link = `${process.env.APP_URI}/auth/verify?token=${token}&userId=${userId}`;
   }
 
-  transport.sendMail({
-    from: "info@ebookchi.com",
+  await mail.sendVerificationEmail({
     to: email,
-    subject: "Your Magic Authentication Link",
-    text: `Click the link below to authenticate your account:\n\n${link}\n\nThis link will expire in 1 hour.`,
-    html: generateVerificationEmail(link),
+    content: generateVerificationEmail(link),
   });
 
   response
