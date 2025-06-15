@@ -16,7 +16,7 @@ app.use(cors());
 // Log HTTP requests in development-friendly format
 app.use(morgan("dev"));
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 app.use("/auth", authRouter);
 // 404 handler
@@ -34,6 +34,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start the server and log the port
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on port ${port}`);
 });
