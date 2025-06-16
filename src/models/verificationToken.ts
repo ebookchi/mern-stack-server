@@ -7,8 +7,20 @@
  * @module models/verificationToken
  */
 
-import { model, Schema } from "mongoose";
+import { model, Schema, Model } from "mongoose";
 import { hashSync, compareSync, genSaltSync } from "bcrypt";
+
+interface VerificationTokenDocument {
+  token: string;
+  userId: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Methods {
+  compareToken(token: string): boolean;
+}
 
 /**
  * Verification Token Schema
@@ -18,7 +30,11 @@ import { hashSync, compareSync, genSaltSync } from "bcrypt";
  * @property {Date} createdAt - Token creation timestamp
  * @property {Date} updatedAt - Last update timestamp
  */
-const verificationTokenSchema = new Schema(
+const verificationTokenSchema = new Schema<
+  VerificationTokenDocument,
+  {},
+  Methods
+>(
   {
     token: { type: String, required: true, unique: true },
     userId: { type: String, required: true },
@@ -67,4 +83,8 @@ const VerificationTokenModel = model(
   verificationTokenSchema
 );
 
-export default VerificationTokenModel;
+export default VerificationTokenModel as Model<
+  VerificationTokenDocument,
+  {},
+  Methods
+>;

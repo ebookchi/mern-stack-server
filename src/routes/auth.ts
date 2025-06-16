@@ -13,7 +13,7 @@
  * @requires controllers/auth
  */
 
-import { generateAuthLink } from "@/controllers/auth";
+import { generateAuthLink, verifyAuthToken } from "@/controllers/auth";
 import { emailValidationSchema, validate } from "@/middlewares/validator";
 import { Router } from "express";
 
@@ -47,6 +47,8 @@ authRouter.post(
   validate(emailValidationSchema), // Validate incoming request body against the email schema
   generateAuthLink
 );
+
+authRouter.get("/verify", verifyAuthToken);
 
 // Export the router for use in the main application
 export default authRouter;

@@ -1,3 +1,4 @@
+import { sendErrorResponse } from "@/utils/sendErrorResponse";
 import { RequestHandler } from "express";
 import crypto from "crypto";
 import VerificationTokenModel from "@/models/verificationToken";
@@ -5,6 +6,8 @@ import userModel from "@/models/user";
 import nodeMailer from "nodemailer";
 import { generateVerificationEmail } from "@/templates/emails/verificationEmail";
 import mail from "@/utils/mail";
+import { StatusCodes } from "http-status-codes";
+
 /**
  * Generates a magic authentication link for passwordless login
  *
@@ -85,4 +88,58 @@ export const generateAuthLink: RequestHandler = async (request, response) => {
   response
     .status(200)
     .json({ message: "Authentication link generated successfully" });
+};
+
+export const verifyAuthToken: RequestHandler = async (request, response) => {
+  const { token, userId } = request.query;
+
+  if (typeof token !== "string" || typeof userId !== "string") {
+    return sendErrorResponse({
+      response,
+      message: "Invalid request parameters. Token and userId must be strings.",
+      status: StatusCodes.FORBIDDEN,
+    });
+  }
+
+  if (!token || !userId) {
+    return response
+      .status(StatusCodes.FORBIDDEN)
+      .json({ message: "Invalid request parameters" });
+  }
+
+  const verificationTokenModel = await VerificationTokenModel.findOne({
+    userId,
+  });
+
+  if (!verificationTokenModel || !verificationTokenModel.compareToken(token)) {
+    return sendErrorResponse({
+      response,
+      message:
+        "Invalid or expired token. Please request a new authentication link.",
+      status: StatusCodes.FORBIDDEN,
+    });
+  }
+
+  if (verificationTokenModel.expiresAt < new Date()) {
+    return response
+      .status(StatusCodes.FORBIDDEN)
+      .json({ message: "Token has expired" });
+  }
+
+  const user = await userModel.findById(userId);
+  if (!user) {
+    return sendErrorResponse({
+      response,
+      message: "User not found",
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+    });
+  }
+
+  // Token is valid, proceed with authentication logic
+  // For example, create a session or issue a JWT
+
+  // Clean up the used token
+  await VerificationTokenModel.deleteOne({ _id: verificationTokenModel._id });
+
+  response.status(200).json({ message: "Authentication successful" });
 };
