@@ -1,0 +1,11 @@
+{
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "notify",
+      "elevateIfNeeded": true,
+      "visibility": "public"
+    }
+  }
+}
