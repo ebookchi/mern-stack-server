@@ -1,3 +1,4 @@
+import { formatUserProfile } from "./../utils/helper";
 import { sendErrorResponse } from "@/utils/sendErrorResponse";
 import { RequestHandler } from "express";
 import crypto from "crypto";
@@ -7,6 +8,7 @@ import nodeMailer from "nodemailer";
 import { generateVerificationEmail } from "@/templates/emails/verificationEmail";
 import mail from "@/utils/mail";
 import { StatusCodes } from "http-status-codes";
+import jwt from "jsonwebtoken";
 
 /**
  * Generates a magic authentication link for passwordless login
@@ -141,5 +143,30 @@ export const verifyAuthToken: RequestHandler = async (request, response) => {
   // Clean up the used token
   await VerificationTokenModel.deleteOne({ _id: verificationTokenModel._id });
 
-  response.status(200).json({ message: "Authentication successful" });
+  const payload = { userId: user._id.toString() };
+  jwt.sign(
+    payload,
+    process.env.JWT_SECRET!,
+    { expiresIn: "15d" },
+    (err, token) => {
+      if (err) {
+        return sendErrorResponse({
+          response,
+          message: "Error generating authentication token",
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+        });
+      }
+      response.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "Strict", // Prevent CSRF attacks
+        expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days
+      });
+      response.redirect(
+        `${process.env.AUTH_SUCCESS_URL}?profile=${JSON.stringify(
+          formatUserProfile(user)
+        )}`
+      );
+    }
+  );
 };
