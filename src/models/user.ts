@@ -1,9 +1,12 @@
 import { ObjectId, model, Schema } from "mongoose";
+
 export interface UserDocument {
   _id: ObjectId;
   email: string;
   role: "user" | "admin" | "author";
   name?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const userSchema = new Schema<UserDocument>({
@@ -18,6 +21,7 @@ const userSchema = new Schema<UserDocument>({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
+
 const userModel = model("user", userSchema);
 
 export default userModel;

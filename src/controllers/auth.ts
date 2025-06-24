@@ -1,14 +1,15 @@
+import { verifyAuthToken } from "@/controllers/auth";
 import { formatUserProfile } from "./../utils/helper";
 import { sendErrorResponse } from "@/utils/sendErrorResponse";
 import { RequestHandler } from "express";
 import crypto from "crypto";
 import VerificationTokenModel from "@/models/verificationToken";
 import userModel from "@/models/user";
-import nodeMailer from "nodemailer";
 import { generateVerificationEmail } from "@/templates/emails/verificationEmail";
 import mail from "@/utils/mail";
 import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
+import { profile } from "console";
 
 /**
  * Generates a magic authentication link for passwordless login
@@ -144,29 +145,52 @@ export const verifyAuthToken: RequestHandler = async (request, response) => {
   await VerificationTokenModel.deleteOne({ _id: verificationTokenModel._id });
 
   const payload = { userId: user._id.toString() };
-  jwt.sign(
-    payload,
-    process.env.JWT_SECRET!,
-    { expiresIn: "15d" },
-    (err, token) => {
-      if (err) {
-        return sendErrorResponse({
-          response,
-          message: "Error generating authentication token",
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-        });
-      }
-      response.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "Strict", // Prevent CSRF attacks
-        expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days
-      });
-      response.redirect(
-        `${process.env.AUTH_SUCCESS_URL}?profile=${JSON.stringify(
-          formatUserProfile(user)
-        )}`
-      );
-    }
+
+  const authToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+    expiresIn: "15d",
+  });
+
+  response.cookie("authToken", authToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict", // Prevent CSRF attacks
+    expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days
+  });
+  response.redirect(
+    `${process.env.AUTH_SUCCESS_URL}?profile=${JSON.stringify(
+      formatUserProfile(user)
+    )}`
   );
+};
+
+export const sendProfileInformation: RequestHandler = (request, response) => {
+  // This endpoint is used to send the user's profile information
+  // It is protected by the isAuth middleware to ensure only authenticated users can access it
+  const user = request.user; // Assuming user is set by the isAuth middleware
+  if (!user) {
+    return sendErrorResponse({
+      response,
+      message: "User not authenticated",
+      status: StatusCodes.UNAUTHORIZED,
+    });
+  }
+
+  response.status(StatusCodes.OK).json({
+    profile: formatUserProfile(user),
+    message: "Profile information retrieved successfully",
+  });
+};
+
+export const logout: RequestHandler = (request, response) => {
+  response.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+    sameSite: "strict", // Prevent CSRF attacks
+    expires: new Date(0), // Set expiration to the past to clear the cookie
+  });
+  response.redirect(process.env.AUTH_LOGOUT_URL || "/");
+  response.status(StatusCodes.OK).json({
+    message: "Logout successful",
+  });
+  response.end();
 };

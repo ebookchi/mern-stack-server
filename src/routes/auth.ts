@@ -1,3 +1,5 @@
+import { logout, sendProfileInformation } from "./../controllers/auth";
+import { isAuth } from "./../middlewares/auth";
 /**
  * Authentication Router Module
  *
@@ -49,6 +51,8 @@ authRouter.post(
 );
 
 authRouter.get("/verify", verifyAuthToken);
+authRouter.get("/profile", isAuth, sendProfileInformation);
+authRouter.post("/logout", isAuth, logout);
 
 // Export the router for use in the main application
 export default authRouter;

@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth";
 import "@/db/connect";
 import {
@@ -14,6 +15,7 @@ const app = express();
 // Parse incoming JSON and URL-encoded payloads
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Enable CORS for all routes (allows cross-origin requests)
 app.use(cors());
