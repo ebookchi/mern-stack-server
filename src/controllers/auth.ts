@@ -1,4 +1,3 @@
-import { verifyAuthToken } from "@/controllers/auth";
 import { formatUserProfile } from "./../utils/helper";
 import { sendErrorResponse } from "@/utils/sendErrorResponse";
 import { RequestHandler } from "express";
@@ -9,31 +8,7 @@ import { generateVerificationEmail } from "@/templates/emails/verificationEmail"
 import mail from "@/utils/mail";
 import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
-import { profile } from "console";
 
-/**
- * Generates a magic authentication link for passwordless login
- *
- * This controller handles the generation of secure, time-limited authentication
- * links that are sent to users' email addresses. It implements a passwordless
- * authentication flow using email verification.
- *
- * @remarks
- * The actual email sending functionality will be implemented using Mailtrap
- * service in the future.
- *
- * @param request - Express request object
- * @param response - Express response object
- * @returns {Object} JSON response with success message
- *
- * @throws {Error} If email service is not available
- *
- * @example
- * POST /auth/generate-link
- * {
- *   "email": "user@example.com"
- * }
- */
 export const generateAuthLink: RequestHandler = async (request, response) => {
   //generate authentication link
   //and send it to the user's email using Mailtrap service
@@ -43,7 +18,7 @@ export const generateAuthLink: RequestHandler = async (request, response) => {
     3. Create a magic link using the token
     4. Send the magic link to the user's email address
     5. Notify the user that the link has been sent
-    6. Return a success response
+    6. Retu rn a success response
     */
 
   const token = crypto.randomBytes(36).toString("hex");
@@ -65,9 +40,9 @@ export const generateAuthLink: RequestHandler = async (request, response) => {
   });
 
   // Create a new verification token for the user
-  await VerificationTokenModel.create<{ userId: string }>({
+  await VerificationTokenModel.create({
     token,
-    userId: userId, // Assuming userId is the email for simplicity
+    userId, // Assuming userId is the email for simplicity
     expiresAt: new Date(expirationTime),
   });
 
@@ -96,71 +71,79 @@ export const generateAuthLink: RequestHandler = async (request, response) => {
 export const verifyAuthToken: RequestHandler = async (request, response) => {
   const { token, userId } = request.query;
 
+  // Validate query parameters
   if (typeof token !== "string" || typeof userId !== "string") {
-    return sendErrorResponse({
+    sendErrorResponse({
       response,
       message: "Invalid request parameters. Token and userId must be strings.",
       status: StatusCodes.FORBIDDEN,
     });
+    return;
   }
 
   if (!token || !userId) {
-    return response
+    response
       .status(StatusCodes.FORBIDDEN)
       .json({ message: "Invalid request parameters" });
+    return;
   }
 
+  // Find the verification token for the user
   const verificationTokenModel = await VerificationTokenModel.findOne({
     userId,
   });
 
-  if (!verificationTokenModel || !verificationTokenModel.compareToken(token)) {
-    return sendErrorResponse({
+  // Check if token exists and matches
+  if (
+    !verificationTokenModel ||
+    typeof verificationTokenModel.compareToken !== "function" ||
+    !verificationTokenModel.compareToken(token)
+  ) {
+    sendErrorResponse({
       response,
       message:
         "Invalid or expired token. Please request a new authentication link.",
       status: StatusCodes.FORBIDDEN,
     });
+    return;
   }
 
+  // Check token expiration
   if (verificationTokenModel.expiresAt < new Date()) {
-    return response
+    response
       .status(StatusCodes.FORBIDDEN)
       .json({ message: "Token has expired" });
+    return;
   }
 
+  // Find the user by userId
   const user = await userModel.findById(userId);
   if (!user) {
-    return sendErrorResponse({
+    sendErrorResponse({
       response,
       message: "User not found",
       status: StatusCodes.INTERNAL_SERVER_ERROR,
     });
+    return;
   }
 
-  // Token is valid, proceed with authentication logic
-  // For example, create a session or issue a JWT
-
-  // Clean up the used token
+  // Delete the used token to prevent reuse
   await VerificationTokenModel.deleteOne({ _id: verificationTokenModel._id });
 
+  // Issue JWT for authenticated session
   const payload = { userId: user._id.toString() };
-
   const authToken = jwt.sign(payload, process.env.JWT_SECRET!, {
     expiresIn: "15d",
   });
 
   response.cookie("authToken", authToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-    sameSite: "strict", // Prevent CSRF attacks
-    expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
   });
-  response.redirect(
-    `${process.env.AUTH_SUCCESS_URL}?profile=${JSON.stringify(
-      formatUserProfile(user)
-    )}`
-  );
+
+  response.redirect(`${process.env.AUTH_SUCCESS_URL}`);
 };
 
 export const sendProfileInformation: RequestHandler = (request, response) => {

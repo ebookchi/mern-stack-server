@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use(cors());
 
 // Log HTTP requests in development-friendly format
-app.use(morgan("dev"));
+if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 

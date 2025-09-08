@@ -1,12 +1,3 @@
-/**
- * Email template for user verification
- *
- * This template is used to create a HTML email for account verification.
- * It contains a verification link for the user to click on.
- *
- * @param {string} link - The verification link that the user should click
- * @returns {string} The HTML email content
- */
 export const generateVerificationEmail = (link: string): string => {
   return `
 <!DOCTYPE html>

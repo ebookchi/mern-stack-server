@@ -1,10 +1,3 @@
-/**
- * Global Error Handler Middleware
- *
- * Centralized error handling for the entire application.
- * Handles different types of errors and provides appropriate responses.
- */
-
 import { Request, Response, NextFunction } from "express";
 
 export interface AppError extends Error {
@@ -13,10 +6,6 @@ export interface AppError extends Error {
   isOperational?: boolean;
 }
 
-/**
- * Global error handling middleware
- * Must be placed after all routes and other middleware
- */
 export const globalErrorHandler = (
   err: AppError,
   req: Request,
@@ -110,9 +99,6 @@ export const globalErrorHandler = (
   }
 };
 
-/**
- * Handle 404 errors for unmatched routes
- */
 export const notFoundHandler = (
   req: Request,
   res: Response,
@@ -128,9 +114,6 @@ export const notFoundHandler = (
   next(error);
 };
 
-/**
- * Custom error class for application errors
- */
 export class AppErrorClass extends Error implements AppError {
   statusCode: number;
   status: string;

@@ -10,7 +10,7 @@ export interface UserDocument {
 }
 
 const userSchema = new Schema<UserDocument>({
-  email: { type: String, required: true, unique: true },
+  email: { type: String, trim: true, required: true, unique: true },
   name: { type: String, trim: true, required: false },
   role: {
     type: String,
@@ -18,7 +18,7 @@ const userSchema = new Schema<UserDocument>({
     default: "user",
     required: true,
   },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now, immutable: true },
   updatedAt: { type: Date, default: Date.now },
 });
 
