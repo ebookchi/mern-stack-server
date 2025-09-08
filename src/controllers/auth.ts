@@ -110,9 +110,11 @@ export const verifyAuthToken: RequestHandler = async (request, response) => {
 
   // Check token expiration
   if (verificationTokenModel.expiresAt < new Date()) {
-    response
-      .status(StatusCodes.FORBIDDEN)
-      .json({ message: "Token has expired" });
+    sendErrorResponse({
+      response,
+      message: "Token has expired. Please request a new authentication link.",
+      status: StatusCodes.FORBIDDEN,
+    });
     return;
   }
 

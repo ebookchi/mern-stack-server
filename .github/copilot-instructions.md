@@ -218,3 +218,26 @@ Copilot should generate comments that reflect these principles **automatically**
 ```
 
 ```
+ 
+## Project-specific guidance for AI contributors
+
+These bullets capture patterns, boundaries, and workflows an AI needs to be productive in this repository.
+
+- Big picture: this is an Express + TypeScript API using Mongoose (MongoDB). Entrypoint: `src/index.ts` mounts routes and the global error middleware. DB connect happens in `src/db/connect.ts`.
+- Primary feature: passwordless "magic-link" auth. Key flow lives in `src/controllers/auth.ts` (generate link, verify token). Tokens are persisted in `src/models/verificationToken.ts` (hashed pre-save, use `compareToken`). Users live in `src/models/user.ts`.
+- Error handling pattern: rely on the centralized `src/middlewares/globalErrorHandler.ts`. New handlers should throw Errors (or `AppErrorClass`) and avoid per-handler try/catch; use `src/utils/withRollback.ts` when side-effects need rollback on failure.
+- Email & templates: email sending helpers are in `src/utils/mail.ts` and the HTML template in `src/templates/emails/verificationEmail.ts`. SMTP credentials are read from env vars (do not hardcode secrets).
+- Helper conventions: `src/utils/sendErrorResponse.ts` expects an object like `{ response, message, status }` — use it for consistent JSON error responses.
+- Dev workflow: use `npm run dev` for local development (uses `tsnd`, `tsconfig-paths` and `.env`), `npm run build` to compile (`tsc` + `tsc-alias`), and `npm run start` to run the built app. Tests are configured via dev deps (Jest, supertest) but `npm test` is a placeholder—check for existing test files before adding tests.
+- Environment: typical required env vars: `NODE_ENV`, `PORT`, `MONGO_URI`, `JWT_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`. `src/index.ts` reads `PORT`; other modules read secrets directly from process.env.
+- Code patterns to follow:
+  - Use TypeScript types and `RequestHandler` signatures from Express.
+  - Use Mongoose models for DB operations; some operations (like token + user creation) assume eventual consistency and use `withRollback` to clean up partial state.
+  - Use conventional commit format (see above) and keep subject lines <50 chars.
+- Integration points and artifacts:
+  - Routes: `src/routes/auth.ts` (auth surface area).
+  - DB: `src/db/connect.ts` (connect + mongoose options).
+  - Global middleware: `src/middlewares/globalErrorHandler.ts`, `src/middlewares/validator.ts`.
+  - Postman collection for manual testing: `.postman/ebookchi-magic-link.postman_collection.json` and `.postman/ebookchi.postman_environment.json`.
+
+If any of these pointers are unclear or a file has moved, tell me which area to expand and I will update the instructions accordingly.
