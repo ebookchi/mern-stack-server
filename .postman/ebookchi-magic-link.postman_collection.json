@@ -1,0 +1,49 @@
+{
+  "info": {
+    "name": "Ebookchi Magic Link API",
+    "_postman_id": "ebookchi-magic-link-collection",
+    "description": "A small Postman collection for testing the magic-link authentication endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Generate Magic Link",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"email\": \"{{testEmail}}\" }"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/generate-link",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "generate-link"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Token (example)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/verify?token={{token}}&userId={{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "verify"],
+          "query": [
+            { "key": "token", "value": "{{token}}" },
+            { "key": "userId", "value": "{{userId}}" }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

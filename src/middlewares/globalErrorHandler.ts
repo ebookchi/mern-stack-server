@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -6,7 +6,7 @@ export interface AppError extends Error {
   isOperational?: boolean;
 }
 
-export const globalErrorHandler = (
+export const globalErrorHandler: ErrorRequestHandler = ((
   err: AppError,
   req: Request,
   res: Response,
@@ -97,7 +97,7 @@ export const globalErrorHandler = (
       });
     }
   }
-};
+}) as ErrorRequestHandler;
 
 export const notFoundHandler = (
   req: Request,
