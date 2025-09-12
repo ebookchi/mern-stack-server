@@ -1,4 +1,5 @@
 import { ObjectId, model, Schema } from "mongoose";
+import { object } from "zod/v4";
 
 export interface UserDocument {
   _id: ObjectId;
@@ -7,6 +8,8 @@ export interface UserDocument {
   name?: string;
   createdAt: Date;
   updatedAt: Date;
+  signedUp: boolean;
+  avatar: { url: string; id: string };
 }
 
 const userSchema = new Schema<UserDocument>({
@@ -20,6 +23,8 @@ const userSchema = new Schema<UserDocument>({
   },
   createdAt: { type: Date, default: Date.now, immutable: true },
   updatedAt: { type: Date, default: Date.now },
+  signedUp: { type: Boolean, default: false },
+  avatar: { type: Object, url: String, id: String },
 });
 
 const userModel = model("user", userSchema);

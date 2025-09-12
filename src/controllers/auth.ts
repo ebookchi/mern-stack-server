@@ -8,6 +8,8 @@ import { generateVerificationEmail } from "@/templates/emails/verificationEmail"
 import mail from "@/utils/mail";
 import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
+import { uploadAvatarToAws as updateAvatarToAws } from "@/utils/fileUpload";
+import slugify from "slugify";
 
 export const generateAuthLink: RequestHandler = async (request, response) => {
   //generate authentication link
@@ -178,4 +180,47 @@ export const logout: RequestHandler = (request, response) => {
     message: "Logout successful",
   });
   response.end();
+};
+
+export const updateProfile: RequestHandler = async (request, response) => {
+  const user = await userModel.findByIdAndUpdate(
+    request.user!._id,
+    {
+      name: request.body.name,
+      signedUp: true,
+    },
+    {
+      new: true, //return the updated document
+    }
+  );
+
+  if (!user) {
+    return sendErrorResponse({
+      response,
+      message: "Something went wrong. User not found!",
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+    });
+  }
+
+  //if there is any file uploaded, upload the image into aws s3 and then update the profile picture
+  const file = request.files!.avatar;
+
+  if (file && !Array.isArray(file)) {
+    const uniqueFileName = `${user._id}-${slugify(request.body.name, {
+      lower: true,
+      replacement: "-",
+    })}.png`;
+    user.avatar = await updateAvatarToAws(
+      file,
+      uniqueFileName,
+      user.avatar?.id
+    );
+
+    await user.save();
+  }
+
+  response.json({
+    profile: formatUserProfile(user),
+    message: "Profile updated successfully",
+  });
 };

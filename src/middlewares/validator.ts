@@ -11,6 +11,15 @@ export const emailValidationSchema = {
     })
     .min(10, "Minimum length is 10 characters"),
 };
+export const newUserSchema = {
+  name: z
+    .string({
+      error: (issue) =>
+        issue.input === undefined ? "Name is required" : "Invalid Name format",
+    })
+    .min(3, "Minimum length is 3 characters")
+    .trim(),
+};
 
 export const validate = <T extends ZodRawShape>(obj: T): RequestHandler => {
   return (req, res, next): void => {
