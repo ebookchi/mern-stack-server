@@ -10,6 +10,6 @@ export const formatUserProfile = (user: UserDocument) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    avatar: user.avatar.url,
+    avatar: user.avatar?.url,
   };
 };

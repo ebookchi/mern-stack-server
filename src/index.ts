@@ -8,6 +8,7 @@ import {
   globalErrorHandler,
   notFoundHandler,
 } from "@/middlewares/globalErrorHandler";
+import authorRouter from "./routes/author";
 
 const app = express();
 
@@ -26,6 +27,7 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 app.use("/auth", authRouter);
+app.use("/author", authorRouter);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
